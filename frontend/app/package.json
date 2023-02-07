@@ -9,7 +9,7 @@
     "node": "18.12.1"
   },
   "scripts": {
-    "start": "vite",
+    "start": "vite --host",
     "build": "tsc && vite build",
     "preview": "vite preview",
     "test": "jest --watch",
