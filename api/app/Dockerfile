@@ -1,4 +1,4 @@
 FROM node:18.12-alpine
 WORKDIR /app
-ADD . .
+COPY . ./
 CMD node index.js

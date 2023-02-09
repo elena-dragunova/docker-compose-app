@@ -24,6 +24,10 @@ const requestListener = function (req, res) {
             res.writeHead(200);
             res.end(authors);
             break;
+        case "/auth/login":
+            res.writeHead(200);
+            res.end('Login request');
+            break;
         default:
             res.writeHead(404);
             res.end(JSON.stringify({error:"Resource not found"}));
