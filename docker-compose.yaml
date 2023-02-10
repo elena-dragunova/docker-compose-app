@@ -14,7 +14,7 @@ services:
   db:
     image: postgres
     volumes:
-      - ./tables.sql:/docker-entrypoint-initdb.d/tables.sql
+      - ./db/tables.sql:/docker-entrypoint-initdb.d/tables.sql
     restart: always
     environment:
       POSTGRES_PASSWORD: postgres
