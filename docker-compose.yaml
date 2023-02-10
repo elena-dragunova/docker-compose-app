@@ -2,15 +2,18 @@ version: '3'
 services:
   backend:
     build:
-      context: ./api/app
+      context: ./api
     ports:
       - "8000:8000"
-
+    depends_on:
+      - db
+    restart: always  
   frontend:
     build:
-      context: ./frontend/app
+      context: ./ui
     ports:
       - "3000:3000"
+    restart: always  
   db:
     image: postgres
     volumes:
