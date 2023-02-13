@@ -14,6 +14,11 @@ const pool = new Pool({
     connectionTimeoutMillis: 2000,
 });
 
+pool.connect();
+pool.on('error', (err, client) => {
+    console.error('Error:', err);
+});
+
 const requestListener = function (req, res) {
     const headers = {
         "Access-Control-Allow-Origin": "*",
@@ -27,8 +32,21 @@ const requestListener = function (req, res) {
         res.setHeader("Content-Type", "application/json");
         switch (req.url) {
             case "/auth/login":
-                res.writeHead(200, headers);
-                res.end('Login request');
+                pool.connect((err, client, done) => {
+                    if (err) throw err;
+                    client.query('SELECT * from users', (err, response) => {
+                        done();
+                        if (err) {
+                            console.log(err.stack);
+                        } else {
+                            for (let row of response.rows) {
+                                console.log(row);
+                            }
+                            res.writeHead(200, headers);
+                            res.end(JSON.stringify(response.rows));
+                        }
+                    });
+                });
                 break;
             default:
                 res.writeHead(404, headers);
@@ -40,19 +58,4 @@ const requestListener = function (req, res) {
 const server = http.createServer(requestListener);
 server.listen(port, host, () => {
     console.log(`Server is running on http://${host}:${port}`);
-})
-
-pool.connect((err, client, release) => {
-    if (err) {
-      return console.error('Error acquiring client', err.stack)
-    }
-    client.query('SELECT * from users', (err, result) => {
-      release()
-      if (err) {
-        return console.error('Error executing query', err.stack)
-      }
-
-      console.log(result.rows);
-      return result.rows;
-    })
-  })
+});
