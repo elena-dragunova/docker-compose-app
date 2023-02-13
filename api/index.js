@@ -32,6 +32,10 @@ const requestListener = function (req, res) {
         res.setHeader("Content-Type", "application/json");
         switch (req.url) {
             case "/auth/login":
+                let reqBody;
+                req.on('data', function (chunk) {
+                    reqBody = JSON.parse(chunk.toString());
+                });
                 pool.connect((err, client, done) => {
                     if (err) throw err;
                     client.query('SELECT * from users', (err, response) => {
@@ -39,11 +43,16 @@ const requestListener = function (req, res) {
                         if (err) {
                             console.log(err.stack);
                         } else {
-                            for (let row of response.rows) {
-                                console.log(row);
+                            const users = response.rows;
+                            const user = users.find(user => user.email === reqBody.email && user.password === reqBody.password);
+                            if (user) {
+                                res.writeHead(200, headers);
+                                res.end();
+                            } else {
+                                res.writeHead(404, headers);
+                                res.end(JSON.stringify({error:"Wrong email or password"}));
                             }
-                            res.writeHead(200, headers);
-                            res.end(JSON.stringify(response.rows));
+                            
                         }
                     });
                 });
