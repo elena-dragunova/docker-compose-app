@@ -1,5 +1,8 @@
-const http = require("http");
+const http = require('http');
+const fs = require('fs');
+const url = require('url');
 const { Pool } = require('pg');
+const Router = require('./router');
 
 const host = '0.0.0.0';
 const port = 8000;
@@ -19,52 +22,48 @@ pool.on('error', (err, client) => {
     console.error('Error:', err);
 });
 
-const requestListener = function (req, res) {
-    const headers = {
-        "Access-Control-Allow-Origin": "*",
-        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE',
-        'Access-Control-Allow-Headers': 'Content-Type',
+class Server {
+    static start(port) {
+      this.getRoutes(port).then(this.createServer);
     }
-    if (req.method === 'OPTIONS') {
-        res.writeHead(200, headers);
-        res.end();
-    } else {
-        res.setHeader("Content-Type", "application/json");
-        switch (req.url) {
-            case "/auth/login":
-                let reqBody;
-                req.on('data', function (chunk) {
-                    reqBody = JSON.parse(chunk.toString());
+  
+    static getRoutes(port) {
+        return new Promise(function(resolve) {
+            fs.readFile('routes.json', { encoding: 'utf8' }, function(error, routes) {
+            if (!error) {
+                resolve({
+                port: port,
+                routes: JSON.parse(routes)
                 });
-                pool.connect((err, client, done) => {
-                    if (err) throw err;
-                    client.query('SELECT * from users', (err, response) => {
-                        done();
-                        if (err) {
-                            console.log(err.stack);
-                        } else {
-                            const users = response.rows;
-                            const user = users.find(user => user.email === reqBody.email && user.password === reqBody.password);
-                            if (user) {
-                                res.writeHead(200, headers);
-                                res.end();
-                            } else {
-                                res.writeHead(404, headers);
-                                res.end(JSON.stringify({error:"Wrong email or password"}));
-                            }
-                            
-                        }
-                    });
-                });
-                break;
-            default:
-                res.writeHead(404, headers);
-                res.end(JSON.stringify({error:"Resource not found"}));
+            }
+        });
+      });
+    }
+  
+    static createServer(settings) {
+        const headers = {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE',
+            'Access-Control-Allow-Headers': 'Content-Type',
         }
-    }
-};
 
-const server = http.createServer(requestListener);
-server.listen(port, host, () => {
-    console.log(`Server is running on http://${host}:${port}`);
-});
+        http.createServer(function(request, response) {
+            if (request.method === 'OPTIONS') {
+                response.writeHead(200, headers);
+                response.end();
+            } else {
+                const path = url.parse(request.url).pathname;
+                const route = Router.find(path, settings.routes);
+                try {
+                    const handler = require('./handlers/' + route.handler);
+                    handler[route.action](request, response, pool, headers);
+                } catch(e) {
+                    response.writeHead(500, headers);
+                    response.end();
+                }
+            }
+        }).listen(settings.port);
+    }
+}
+
+Server.start(port);
