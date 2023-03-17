@@ -7,25 +7,23 @@ class Auth {
 
         pool.connect((err, client, done) => {
             if (err) throw err;
-            client.query('SELECT * from users', (err, res) => {
+            client.query(`SELECT * from users WHERE email='${reqBody.email}' AND password='${reqBody.password}'`, (err, res) => {
                 done();
                 if (err) {
                     console.log(err.stack);
                 } else {
-                    const users = res.rows;
-                    const user = users.find(user => user.email === reqBody.email && user.password === reqBody.password);
-                    if (user) {
+                    if (res.rows.length > 0) {
+                        console.log('true');
                         response.writeHead(200, headers);
-                        response.end(users);
+                        response.end();
                     } else {
+                        console.log('false');
                         response.writeHead(404, headers);
                         response.end(JSON.stringify({error:"Wrong email or password"}));
                     }
                 }
             });
         });
-        response.writeHead(200, headers);
-        response.end();
     }
 }
   
