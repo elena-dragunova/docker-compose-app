@@ -13,11 +13,9 @@ class Auth {
                     console.log(err.stack);
                 } else {
                     if (res.rows.length > 0) {
-                        console.log('true');
                         response.writeHead(200, headers);
                         response.end();
                     } else {
-                        console.log('false');
                         response.writeHead(404, headers);
                         response.end(JSON.stringify({error:"Wrong email or password"}));
                     }
