@@ -23,24 +23,11 @@ pool.on('error', (err, client) => {
 });
 
 class Server {
-    static start(port) {
-      this.getRoutes(port).then(this.createServer);
+    static start() {
+        this.createServer();
     }
   
-    static getRoutes(port) {
-        return new Promise(function(resolve) {
-            fs.readFile('routes.json', { encoding: 'utf8' }, function(error, routes) {
-            if (!error) {
-                resolve({
-                port: port,
-                routes: JSON.parse(routes)
-                });
-            }
-        });
-      });
-    }
-  
-    static createServer(settings) {
+    static createServer() {
         const headers = {
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE',
@@ -53,7 +40,7 @@ class Server {
                 response.end();
             } else {
                 const path = url.parse(request.url).pathname;
-                const route = Router.find(path, settings.routes);
+                const route = Router.find(path);
                 try {
                     const handler = require('./handlers/' + route.handler);
                     handler[route.action](request, response, pool, headers);
@@ -62,8 +49,8 @@ class Server {
                     response.end();
                 }
             }
-        }).listen(settings.port);
+        }).listen(port);
     }
 }
 
-Server.start(port);
+Server.start();

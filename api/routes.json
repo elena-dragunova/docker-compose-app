@@ -1,6 +1,0 @@
-{
-    "/auth/login": {
-      "handler": "auth",
-      "action": "login"
-    }
-}

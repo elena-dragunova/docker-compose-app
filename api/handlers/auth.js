@@ -17,7 +17,7 @@ class Auth {
                         response.end();
                     } else {
                         response.writeHead(404, headers);
-                        response.end(JSON.stringify({error:"Wrong email or password"}));
+                        response.end(JSON.stringify({error:'Wrong email or password'}));
                     }
                 }
             });
