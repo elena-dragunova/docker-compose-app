@@ -1,5 +1,4 @@
 const http = require('http');
-const fs = require('fs');
 const url = require('url');
 const { Pool } = require('pg');
 const Router = require('./router');
@@ -18,7 +17,7 @@ const pool = new Pool({
 });
 
 pool.connect();
-pool.on('error', (err, client) => {
+pool.on('error', (err) => {
     console.error('Error:', err);
 });
 
