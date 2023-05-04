@@ -1,3 +1,5 @@
+const User = require('../services/user-service');
+
 class Auth {
     static login(request, response, pool, headers) {
         let reqBody;
@@ -6,23 +8,14 @@ class Auth {
         });
 
         request.on('end', function() {
-            pool.connect((err, client, done) => {
-                if (err) throw err;
-                client.query(`SELECT * from users WHERE email='${reqBody.email}' AND password='${reqBody.password}'`, (err, res) => {
-                    done();
-                    if (err) {
-                        console.log(err.stack);
-                    } else {
-                        if (res.rows.length > 0) {
-                            response.writeHead(200, headers);
-                            response.end();
-                        } else {
-                            response.writeHead(404, headers);
-                            response.end(JSON.stringify({error:'Wrong email or password'}));
-                        }
-                    }
-                });
-            });
+            const users = User.findByCredentials(pool, reqBody.email, reqBody.password);
+            if (users.length > 0) {
+                response.writeHead(200, headers);
+                response.end();
+            } else {
+                response.writeHead(404, headers);
+                response.end(JSON.stringify({error:'Wrong email or password'}));
+            }
         });
     }
 }
