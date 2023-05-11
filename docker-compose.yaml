@@ -1,0 +1,25 @@
+version: '3'
+services:
+  backend:
+    build:
+      context: ./api
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    restart: always  
+  frontend:
+    build:
+      context: ./ui
+    ports:
+      - "3000:3000"
+    restart: always  
+  db:
+    image: postgres
+    volumes:
+      - ./db/tables.sql:/docker-entrypoint-initdb.d/tables.sql
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_DB: database
